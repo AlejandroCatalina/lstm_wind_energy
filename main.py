@@ -8,6 +8,9 @@ from torch.utils.data import DataLoader
 from model import LSTM, CLSTM
 from data import Sotavento
 
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+print('device: ', device)
+
 # Network params
 input_channels = 8
 height = 15
@@ -17,9 +20,8 @@ hidden_dim = 32
 output_dim = 1
 num_lstm_layers = 1
 learning_rate = 1e-3
-num_epochs = 1000
+num_epochs = 10000
 batch_size = 100
-dtype = torch.float
 
 #####################
 # Load data
@@ -36,6 +38,7 @@ model = LSTM(
     batch_size=batch_size,
     output_dim=output_dim,
     num_layers=num_lstm_layers)
+model.to(device)
 
 loss_fn = torch.nn.MSELoss(size_average=False)
 
@@ -53,6 +56,7 @@ for t in range(num_epochs):
     hist = []
     for i, train in enumerate(train_loader, 0):
         X, y = train
+        X, y = X.to(device), y.to(device)
         if len(X) != batch_size:
             pad_size = batch_size - len(X)
             padding_X = torch.zeros((pad_size, input_dim))
@@ -88,6 +92,7 @@ for t in range(num_epochs):
             test_loss = []
             for j, test in enumerate(test_loader, 0):
                 X_test, y_test = test
+                X_test, y_test = X_test.to(device), y_test.to(device)
                 test_size = batch_size
                 if len(X_test) != batch_size:
                     test_size = len(X_test)

@@ -3,7 +3,6 @@ import torch.nn as nn
 import matplotlib.pyplot as plt
 import numpy as np
 
-from sklearn.datasets import load_svmlight_file
 from torch.utils.data import DataLoader
 
 from model import LSTM, CLSTM

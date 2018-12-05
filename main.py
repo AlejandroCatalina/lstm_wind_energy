@@ -83,7 +83,7 @@ for t in range(num_epochs):
 
     # after iteration compute train error
     if t % 100 == 0:
-        print("Epoch ", t, "Train MSE: ", torch.sum(hist) / len(hist))
+        print("Epoch ", t, "Train MSE: ", np.sum(hist))
         with torch.no_grad():
             # compute test error over mini-batches
             test_loss = []
@@ -101,4 +101,4 @@ for t in range(num_epochs):
                 y_pred_test = model(X_test)[:test_size]
                 y_test_ = y_test[:test_size]
                 test_loss.append(loss_fn(y_pred_test, y_test_).item())
-            print("Epoch ", t, "Test MSE: ", torch.sum(test_loss) / len(test_loss))
+            print("Epoch ", t, "Test MSE: ", np.sum(test_loss))

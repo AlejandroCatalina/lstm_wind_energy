@@ -7,19 +7,29 @@ from torch.utils.data import DataLoader
 
 from model import LSTM, CLSTM
 from data import Sotavento
+import argparse
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 print('device: ', device)
+
+parser = argparse.ArgumentParser(description='Wind energy forecasting.')
+parser.add_argument(
+    '--lr', type=float, help='Adam learning rate', default=1e-3)
+parser.add_argument(
+    '--l2', type=float, help='Weight decay regularization term', default=0.0)
+parser.add_argument('--units', type=int, help='Hidden units', default=32)
+
+args = parser.parse_args()
 
 # Network params
 input_channels = 8
 height = 15
 width = 8
 input_dim = input_channels * height * width
-hidden_dim = 32
+hidden_dim = args.units
 output_dim = 1
 num_lstm_layers = 1
-learning_rate = 1e-3
+learning_rate = args.lr
 num_epochs = 10000
 batch_size = 100
 
@@ -55,7 +65,8 @@ model.to(device)
 loss_fn = torch.nn.MSELoss(reduction='sum')
 mae_fn = torch.nn.L1Loss(reduction='elementwise_mean')
 
-optimiser = torch.optim.Adam(model.parameters(), lr=learning_rate)
+optimiser = torch.optim.Adam(
+    model.parameters(), lr=learning_rate, weight_decay=args.l2)
 
 #####################
 # Train model

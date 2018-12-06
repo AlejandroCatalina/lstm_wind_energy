@@ -46,7 +46,7 @@ class CLSTM(nn.Module):
                  hidden_dim,
                  batch_size,
                  output_dim=1,
-                 num_layers=2,
+                 num_lstm_layers=2,
                  kernel_size=2,
                  input_channels=8,
                  height=15,
@@ -58,7 +58,7 @@ class CLSTM(nn.Module):
         self.input_dim = input_dim
         self.hidden_dim = hidden_dim
         self.batch_size = batch_size
-        self.num_layers = num_layers
+        self.num_lstm_layers = num_lstm_layers
         self.kernel_size = kernel_size
 
         # Define the Conv layer
@@ -80,15 +80,15 @@ class CLSTM(nn.Module):
         self.dim = self.hidden_dim * out_11 * out_22
 
         # Define the LSTM layer
-        self.lstm = nn.LSTM(self.dim, self.hidden_dim, self.num_layers)
+        self.lstm = nn.LSTM(self.dim, self.hidden_dim, self.num_lstm_layers)
 
         # Define the output layer
         self.linear = nn.Linear(self.hidden_dim, output_dim)
 
     def init_hidden(self):
         # This is what we'll initialise our hidden state as
-        return (torch.zeros(self.num_layers, self.batch_size, self.hidden_dim),
-                torch.zeros(self.num_layers, self.batch_size, self.hidden_dim))
+        return (torch.zeros(self.num_lstm_layers, self.batch_size, self.hidden_dim),
+                torch.zeros(self.num_lstm_layers, self.batch_size, self.hidden_dim))
 
     def forward(self, input):
         input_view = input.view(self.batch_size, self.height, self.width,
@@ -100,7 +100,7 @@ class CLSTM(nn.Module):
         # shape input to LSTM must be (input_size, batch_size, dim)
         # shape of lstm_out: [input_size, batch_size, hidden_dim]
         # shape of self.hidden: (a, b), where a and b both
-        # have shape (num_layers, batch_size, hidden_dim).
+        # have shape (num_lstm_layers, batch_size, hidden_dim).
         lstm_out, self.hidden = self.lstm(
             conv_out.view(-1, self.batch_size, self.dim))
 

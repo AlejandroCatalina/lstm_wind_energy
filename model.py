@@ -112,7 +112,7 @@ class CLSTM(nn.Module):
         # Define the LSTM layer
         # hidden_dim of the LSTM is shared among all LSTM layers
         # so there must be only 1 hidden_dim attached to the LSTMs
-        self.lstm_hidden_dim = self.lstm_hidden_dim
+        self.lstm_hidden_dim = self.hidden_dim[-1]
         self.lstm = nn.LSTM(self.dim, self.lstm_hidden_dim,
                             self.num_lstm_layers)
 

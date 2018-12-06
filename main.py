@@ -53,6 +53,7 @@ model.to(device)
 # model.to(device)
 
 loss_fn = torch.nn.MSELoss(size_average=False)
+mae_fn = torch.nn.L1Loss(size_average=False)
 
 optimiser = torch.optim.Adam(model.parameters(), lr=learning_rate)
 

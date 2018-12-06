@@ -65,21 +65,29 @@ class CLSTM(nn.Module):
         self.num_conv_layers = num_conv_layers
         self.kernel_size = kernel_size
 
+        total_layers = self.num_lstm_layer + self.num_conv_layer
+        if isinstance(self.hidden_dim, list):
+            if len(self.hidden_dim) != total_layers:
+                self.hidden_dim = np.pad(
+                    self.hidden_dim, pad_width=total_layers, mode='edge')
+        else:
+            self.hidden_dim = [self.hidden_dim] * total_layers
+
         # compute out dimension and define layers
         out_11, out_22 = self.height, self.width
 
         self.convs = []
         # first input_channels is the number of channels in the data
         input_channels = self.input_channels
-        for _ in range(num_conv_layers):
+        for output_channels in self.hidden_dim[:num_conv_layers]:
             # define the conv layers
             # output is (num_train, hidden_dim, out_1, out_2)
             self.convs.append(
-                nn.Conv2d(input_channels, self.hidden_dim, self.kernel_size)
+                nn.Conv2d(input_channels, output_channels, self.kernel_size)
                 .cuda())
             # input channels for text conv layers is the output channels
             # of the previous one
-            input_channels = self.hidden_dim
+            input_channels = output_channels
 
             out_1 = int(
                 np.floor((out_11 - 1 * (self.kernel_size - 1) - 1) / 1 + 1))
@@ -102,10 +110,13 @@ class CLSTM(nn.Module):
         self.dim = self.hidden_dim * out_11 * out_22
 
         # Define the LSTM layer
-        self.lstm = nn.LSTM(self.dim, self.hidden_dim, self.num_lstm_layers)
+        # hidden_dim of the LSTM is shared among all LSTM layers
+        # so there must be only 1 hidden_dim attached to the LSTMs
+        self.lstm = nn.LSTM(self.dim, self.hidden_dim[-1],
+                            self.num_lstm_layers)
 
         # Define the output layer
-        self.linear = nn.Linear(self.hidden_dim, output_dim)
+        self.linear = nn.Linear(self.hidden_dim[-1], output_dim)
 
     def init_hidden(self):
         # This is what we'll initialise our hidden state as

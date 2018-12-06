@@ -18,7 +18,7 @@ parser.add_argument(
 parser.add_argument(
     '--l2', type=float, help='Weight decay regularization term', default=0.0)
 parser.add_argument(
-    '--hidden-units', type=int, help='Hidden units', default=32)
+    '--hidden-units', nargs='+', type=int, help='Hidden units', default=32)
 parser.add_argument(
     '--dropout-conv',
     type=float,

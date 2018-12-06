@@ -27,18 +27,29 @@ batch_size = 100
 # Load data
 #####################
 stv_train = Sotavento('/Users/alex/dev/lstm_wind_energy/datasets/')
-stv_test = Sotavento('/Users/alex/dev/lstm_wind_energy/datasets/', train = False)
+stv_test = Sotavento('/Users/alex/dev/lstm_wind_energy/datasets/', train=False)
 
 #####################
 # Build model
 #####################
-model = LSTM(
+model = CLSTM(
     input_dim,
     hidden_dim,
     batch_size=batch_size,
     output_dim=output_dim,
-    num_layers=num_lstm_layers)
+    num_layers=num_lstm_layers,
+    input_channels=input_channels,
+    height=height,
+    width=width)
 model.to(device)
+
+# model = LSTM(
+#     input_dim,
+#     hidden_dim,
+#     batch_size=batch_size,
+#     output_dim=output_dim,
+#     num_layers=num_lstm_layers)
+# model.to(device)
 
 loss_fn = torch.nn.MSELoss(size_average=False)
 
@@ -59,8 +70,8 @@ for t in range(num_epochs):
         X, y = X.to(device), y.to(device)
         if len(X) != batch_size:
             pad_size = batch_size - len(X)
-            padding_X = torch.zeros((pad_size, input_dim))
-            padding_y = torch.zeros((pad_size))
+            padding_X = torch.zeros((pad_size, input_dim)).to(device)
+            padding_y = torch.zeros((pad_size)).to(device)
             X = torch.cat((X, padding_X))
             y = torch.cat((y, padding_y))
 
@@ -97,8 +108,9 @@ for t in range(num_epochs):
                 if len(X_test) != batch_size:
                     test_size = len(X_test)
                     pad_size = batch_size - len(X_test)
-                    padding_X = torch.zeros((pad_size, X_test.shape[1]))
-                    padding_y = torch.zeros((pad_size))
+                    padding_X = torch.zeros((pad_size,
+                                             X_test.shape[1])).to(device)
+                    padding_y = torch.zeros((pad_size)).to(device)
                     X_test = torch.cat((X_test, padding_X))
                     y_test = torch.cat((y_test, padding_y))
 

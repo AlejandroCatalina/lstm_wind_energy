@@ -74,7 +74,7 @@ class CLSTM(nn.Module):
             # define the conv layers
             # output is (num_train, hidden_dim, out_1, out_2)
             self.convs.append(
-                nn.Conv2d(input_channels, self.hidden_dim, self.kernel_size))
+                nn.Conv2d(input_channels, self.hidden_dim, self.kernel_size).cuda())
             # input channels for text conv layers is the output channels
             # of the previous one
             input_channels = self.hidden_dim

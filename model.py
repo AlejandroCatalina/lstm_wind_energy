@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 import numpy as np
 
+
 class LSTM(nn.Module):
     def __init__(self,
                  input_dim,
@@ -63,26 +64,37 @@ class CLSTM(nn.Module):
         self.num_conv_layers = num_conv_layers
         self.kernel_size = kernel_size
 
-        # Define the Conv layer
-        self.conv = nn.Conv2d(self.input_channels, self.hidden_dim,
-                              self.kernel_size)
-        # output is (num_train, hidden_dim, out_1, out_2)
-        self.relu = nn.ReLU()
-
-        self.max_pool = nn.MaxPool2d(kernel_size=kernel_size)
-        # output is (num_train,  hidden_dim, out_11, out_22)
-
-        # compute out dimension
+        # compute out dimension and define layers
         out_11, out_22 = self.height, self.width
+
+        self.convs = []
+        # first input_channels is the number of channels in the data
+        input_channels = self.input_channels
         for _ in range(num_conv_layers):
+            # define the conv layers
+            # output is (num_train, hidden_dim, out_1, out_2)
+            self.convs.append(
+                nn.Conv2d(input_channels, self.hidden_dim, self.kernel_size))
+            # input channels for text conv layers is the output channels
+            # of the previous one
+            input_channels = self.hidden_dim
+
             out_1 = int(
                 np.floor((out_11 - 1 * (self.kernel_size - 1) - 1) / 1 + 1))
             out_2 = int(
                 np.floor((out_22 - 1 * (self.kernel_size - 1) - 1) / 1 + 1))
             out_11 = int(
-                np.floor((out_1 - 1 * (self.kernel_size - 1) - 1) / self.kernel_size + 1))
+                np.floor((out_1 - 1 *
+                          (self.kernel_size - 1) - 1) / self.kernel_size + 1))
             out_22 = int(
-                np.floor((out_2 - 1 * (self.kernel_size - 1) - 1) / self.kernel_size + 1))
+                np.floor((out_2 - 1 *
+                          (self.kernel_size - 1) - 1) / self.kernel_size + 1))
+
+        self.relu = nn.ReLU()
+
+        self.max_pool = nn.MaxPool2d(kernel_size=kernel_size)
+        # output is (num_train, hidden_dim, out_11, out_22)
+
         self.dim = self.hidden_dim * out_11 * out_22
 
         # Define the LSTM layer
@@ -93,8 +105,10 @@ class CLSTM(nn.Module):
 
     def init_hidden(self):
         # This is what we'll initialise our hidden state as
-        return (torch.zeros(self.num_lstm_layers, self.batch_size, self.hidden_dim),
-                torch.zeros(self.num_lstm_layers, self.batch_size, self.hidden_dim))
+        return (torch.zeros(self.num_lstm_layers, self.batch_size,
+                            self.hidden_dim), torch.zeros(
+                                self.num_lstm_layers, self.batch_size,
+                                self.hidden_dim))
 
     def forward(self, input):
         input_view = input.view(self.batch_size, self.height, self.width,
@@ -102,8 +116,8 @@ class CLSTM(nn.Module):
         input_tr = input_view.permute([0, 3, 1, 2])
 
         # sequentially apply conv layers
-        for _ in range(self.num_conv_layers):
-            input_tr = self.relu(self.max_pool(self.conv(input_tr)))
+        for conv in self.convs:
+            input_tr = self.relu(self.max_pool(conv(input_tr)))
         conv_out = input_tr
 
         # Forward pass through LSTM layer

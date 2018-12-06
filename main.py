@@ -115,7 +115,7 @@ for t in range(num_epochs):
     # after iteration compute train error
     if t % 100 == 0:
         print("Epoch ", t, "Train MSE: ",
-              np.sum(hist), "Test MAE: ", np.mean(hist_mae))
+              np.sum(hist), "Train MAE: ", np.mean(hist_mae))
         with torch.no_grad():
             # compute test error over mini-batches
             test_mse_loss = []

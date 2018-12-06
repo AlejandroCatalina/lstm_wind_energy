@@ -65,6 +65,7 @@ class CLSTM(nn.Module):
         self.conv = nn.Conv2d(self.input_channels, self.hidden_dim,
                               self.kernel_size)
         # output is (num_train, hidden_dim, out_1, out_2)
+        self.relu = nn.ReLU()
 
         self.max_pool = nn.MaxPool2d(kernel_size=kernel_size)
         # output is (num_train,  hidden_dim, out_11, out_22)
@@ -94,7 +95,7 @@ class CLSTM(nn.Module):
         input_view = input.view(self.batch_size, self.height, self.width,
                                 self.input_channels)
         input_tr = input_view.permute([0, 3, 1, 2])
-        conv_out = self.max_pool(self.conv(input_tr))
+        conv_out = self.relu(self.max_pool(self.conv(input_tr)))
 
         # Forward pass through LSTM layer
         # shape input to LSTM must be (input_size, batch_size, dim)

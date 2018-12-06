@@ -120,11 +120,10 @@ class CLSTM(nn.Module):
         self.linear = nn.Linear(self.lstm_hidden_dim, output_dim)
 
     def init_hidden(self):
-        # This is what we'll initialise our hidden state as
         return (torch.zeros(self.num_lstm_layers, self.batch_size,
-                            self.hidden_dim), torch.zeros(
-                                self.num_lstm_layers, self.batch_size,
-                                self.hidden_dim))
+                            self.lstm_hidden_dim),
+                torch.zeros(self.num_lstm_layers, self.batch_size,
+                            self.lstm_hidden_dim))
 
     def forward(self, input):
         input_view = input.view(self.batch_size, self.height, self.width,

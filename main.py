@@ -38,7 +38,7 @@ model = CLSTM(
     hidden_dim,
     batch_size=batch_size,
     output_dim=output_dim,
-    num_layers=num_lstm_layers,
+    num_lstm_layers=num_lstm_layers,
     input_channels=input_channels,
     height=height,
     width=width)
@@ -52,8 +52,8 @@ model.to(device)
 #     num_layers=num_lstm_layers)
 # model.to(device)
 
-loss_fn = torch.nn.MSELoss(size_average=False)
-mae_fn = torch.nn.L1Loss(size_average=False)
+loss_fn = torch.nn.MSELoss(reduction='sum')
+mae_fn = torch.nn.L1Loss(reduction='elementwise_mean')
 
 optimiser = torch.optim.Adam(model.parameters(), lr=learning_rate)
 
@@ -67,6 +67,7 @@ for t in range(num_epochs):
     train_loader = DataLoader(stv_train, batch_size=batch_size, shuffle=False)
     test_loader = DataLoader(stv_test, batch_size=batch_size, shuffle=False)
     hist = []
+    hist_mae = []
     for i, train in enumerate(train_loader, 0):
         X, y = train
         X, y = X.to(device), y.to(device)
@@ -88,6 +89,9 @@ for t in range(num_epochs):
         loss = loss_fn(y_pred, y)
         hist.append(loss.item())
 
+        mae_loss = mae_fn(y_pred, y)
+        hist_mae.append(mae_loss.item())
+
         # Zero out gradient, else they will accumulate between epochs
         optimiser.zero_grad()
 
@@ -99,10 +103,12 @@ for t in range(num_epochs):
 
     # after iteration compute train error
     if t % 100 == 0:
-        print("Epoch ", t, "Train MSE: ", np.sum(hist))
+        print("Epoch ", t, "Train MSE: ",
+              np.sum(hist), "Test MAE: ", np.mean(hist_mae))
         with torch.no_grad():
             # compute test error over mini-batches
-            test_loss = []
+            test_mse_loss = []
+            test_mae_loss = []
             for j, test in enumerate(test_loader, 0):
                 X_test, y_test = test
                 X_test, y_test = X_test.to(device), y_test.to(device)
@@ -118,5 +124,7 @@ for t in range(num_epochs):
 
                 y_pred_test = model(X_test)[:test_size]
                 y_test_ = y_test[:test_size]
-                test_loss.append(loss_fn(y_pred_test, y_test_).item())
-            print("Epoch ", t, "Test MSE: ", np.sum(test_loss))
+                test_mse_loss.append(loss_fn(y_pred_test, y_test_).item())
+                test_mae_loss.append(mae_fn(y_pred_test, y_test_).item())
+            print("Epoch ", t, "Test MSE: ",
+                  np.sum(test_mse_loss), "Test MAE: ", np.mean(test_mae_loss))

@@ -49,6 +49,7 @@ class CLSTM(nn.Module):
                  output_dim=1,
                  num_lstm_layers=1,
                  num_conv_layers=1,
+                 dropout_conv=0.2,
                  kernel_size=2,
                  input_channels=8,
                  height=15,
@@ -74,7 +75,8 @@ class CLSTM(nn.Module):
             # define the conv layers
             # output is (num_train, hidden_dim, out_1, out_2)
             self.convs.append(
-                nn.Conv2d(input_channels, self.hidden_dim, self.kernel_size).cuda())
+                nn.Conv2d(input_channels, self.hidden_dim, self.kernel_size)
+                .cuda())
             # input channels for text conv layers is the output channels
             # of the previous one
             input_channels = self.hidden_dim
@@ -94,6 +96,8 @@ class CLSTM(nn.Module):
 
         self.max_pool = nn.MaxPool2d(kernel_size=kernel_size)
         # output is (num_train, hidden_dim, out_11, out_22)
+
+        self.dropout = nn.Dropout(p=dropout_conv)
 
         self.dim = self.hidden_dim * out_11 * out_22
 
@@ -117,7 +121,7 @@ class CLSTM(nn.Module):
 
         # sequentially apply conv layers
         for conv in self.convs:
-            input_tr = self.relu(self.max_pool(conv(input_tr)))
+            input_tr = self.dropout(self.relu(self.max_pool(conv(input_tr))))
         conv_out = input_tr
 
         # Forward pass through LSTM layer

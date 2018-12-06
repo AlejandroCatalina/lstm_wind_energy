@@ -107,7 +107,7 @@ class CLSTM(nn.Module):
 
         self.dropout = nn.Dropout(p=dropout_conv)
 
-        self.dim = self.hidden_dim * out_11 * out_22
+        self.dim = output_channels * out_11 * out_22
 
         # Define the LSTM layer
         # hidden_dim of the LSTM is shared among all LSTM layers

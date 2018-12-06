@@ -46,7 +46,8 @@ class CLSTM(nn.Module):
                  hidden_dim,
                  batch_size,
                  output_dim=1,
-                 num_lstm_layers=2,
+                 num_lstm_layers=1,
+                 num_conv_layers=1,
                  kernel_size=2,
                  input_channels=8,
                  height=15,
@@ -59,6 +60,7 @@ class CLSTM(nn.Module):
         self.hidden_dim = hidden_dim
         self.batch_size = batch_size
         self.num_lstm_layers = num_lstm_layers
+        self.num_conv_layers = num_conv_layers
         self.kernel_size = kernel_size
 
         # Define the Conv layer
@@ -70,14 +72,17 @@ class CLSTM(nn.Module):
         self.max_pool = nn.MaxPool2d(kernel_size=kernel_size)
         # output is (num_train,  hidden_dim, out_11, out_22)
 
-        out_1 = int(
-            np.floor((self.height - 1 * (self.kernel_size - 1) - 1) / 1 + 1))
-        out_2 = int(
-            np.floor((self.width - 1 * (self.kernel_size - 1) - 1) / 1 + 1))
-        out_11 = int(
-            np.floor((out_1 - 1 * (self.kernel_size - 1) - 1) / self.kernel_size + 1))
-        out_22 = int(
-            np.floor((out_2 - 1 * (self.kernel_size - 1) - 1) / self.kernel_size + 1))
+        # compute out dimension
+        out_11, out_22 = self.height, self.width
+        for _ in range(num_conv_layers):
+            out_1 = int(
+                np.floor((out_11 - 1 * (self.kernel_size - 1) - 1) / 1 + 1))
+            out_2 = int(
+                np.floor((out_22 - 1 * (self.kernel_size - 1) - 1) / 1 + 1))
+            out_11 = int(
+                np.floor((out_1 - 1 * (self.kernel_size - 1) - 1) / self.kernel_size + 1))
+            out_22 = int(
+                np.floor((out_2 - 1 * (self.kernel_size - 1) - 1) / self.kernel_size + 1))
         self.dim = self.hidden_dim * out_11 * out_22
 
         # Define the LSTM layer
@@ -95,7 +100,11 @@ class CLSTM(nn.Module):
         input_view = input.view(self.batch_size, self.height, self.width,
                                 self.input_channels)
         input_tr = input_view.permute([0, 3, 1, 2])
-        conv_out = self.relu(self.max_pool(self.conv(input_tr)))
+
+        # sequentially apply conv layers
+        for _ in range(self.num_conv_layers):
+            input_tr = self.relu(self.max_pool(self.conv(input_tr)))
+        conv_out = input_tr
 
         # Forward pass through LSTM layer
         # shape input to LSTM must be (input_size, batch_size, dim)

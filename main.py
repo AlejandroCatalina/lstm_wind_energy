@@ -17,7 +17,9 @@ parser.add_argument(
     '--lr', type=float, help='Adam learning rate', default=1e-3)
 parser.add_argument(
     '--l2', type=float, help='Weight decay regularization term', default=0.0)
-parser.add_argument('--units', type=int, help='Hidden units', default=32)
+parser.add_argument('--hidden-units', type=int, help='Hidden units', default=32)
+parser.add_argument('--lstm-layers', type=int, help='Number of LSTM layers', default=1)
+parser.add_argument('--conv-layers', type=int, help='Number of Conv layers', default=1)
 
 args = parser.parse_args()
 
@@ -26,9 +28,10 @@ input_channels = 8
 height = 15
 width = 8
 input_dim = input_channels * height * width
-hidden_dim = args.units
+hidden_dim = args.hidden_units
 output_dim = 1
-num_lstm_layers = 1
+num_lstm_layers = args.lstm_layers
+num_conv_layers = args.conv_layers
 learning_rate = args.lr
 num_epochs = 10000
 batch_size = 100
@@ -48,6 +51,7 @@ model = CLSTM(
     hidden_dim,
     batch_size=batch_size,
     output_dim=output_dim,
+    num_conv_layers=num_conv_layers,
     num_lstm_layers=num_lstm_layers,
     input_channels=input_channels,
     height=height,

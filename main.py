@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
-import matplotlib.pyplot as plt
 import numpy as np
+import os
 
 from torch.utils.data import DataLoader
 
@@ -26,8 +26,9 @@ batch_size = 100
 #####################
 # Load data
 #####################
-stv_train = Sotavento('/Users/alex/dev/lstm_wind_energy/datasets/')
-stv_test = Sotavento('/Users/alex/dev/lstm_wind_energy/datasets/', train=False)
+path = os.path.expanduser('~/dev/lstm_wind_energy/datasets/')
+stv_train = Sotavento(path)
+stv_test = Sotavento(path, train=False)
 
 #####################
 # Build model

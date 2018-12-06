@@ -112,11 +112,12 @@ class CLSTM(nn.Module):
         # Define the LSTM layer
         # hidden_dim of the LSTM is shared among all LSTM layers
         # so there must be only 1 hidden_dim attached to the LSTMs
-        self.lstm = nn.LSTM(self.dim, self.hidden_dim[-1],
+        self.lstm_hidden_dim = self.lstm_hidden_dim
+        self.lstm = nn.LSTM(self.dim, self.lstm_hidden_dim,
                             self.num_lstm_layers)
 
         # Define the output layer
-        self.linear = nn.Linear(self.hidden_dim[-1], output_dim)
+        self.linear = nn.Linear(self.lstm_hidden_dim, output_dim)
 
     def init_hidden(self):
         # This is what we'll initialise our hidden state as

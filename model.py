@@ -82,6 +82,7 @@ class CLSTM(nn.Module):
         out_11, out_22 = self.height, self.width
 
         self.convs = []
+
         # first input_channels is the number of channels in the data
         input_channels = self.input_channels
         for output_channels in self.hidden_dim[:num_conv_layers]:
@@ -105,10 +106,10 @@ class CLSTM(nn.Module):
                           (self.kernel_size - 1) - 1) / 1 + 1))
             out_11 = int(
                 np.floor((out_1 - 1 *
-                          (self.kernel_size - 1) - 1) / self.kernel_size + 1))
+                          (self.pool_kernel_size - 1) - 1) / self.pool_kernel_size + 1))
             out_22 = int(
                 np.floor((out_2 - 1 *
-                          (self.kernel_size - 1) - 1) / self.kernel_size + 1))
+                          (self.pool_kernel_size - 1) - 1) / self.pool_kernel_size + 1))
 
         self.relu = nn.ReLU()
 

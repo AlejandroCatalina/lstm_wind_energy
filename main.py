@@ -28,13 +28,19 @@ parser.add_argument(
     '--lstm-layers', type=int, help='Number of LSTM layers', default=1)
 parser.add_argument(
     '--conv-layers', type=int, help='Number of Conv layers', default=1)
+parser.add_argument(
+    '--channels', type=int, help='Input channels', default=10)
+parser.add_argument(
+    '--height', type=int, help='Height to be considered by convolutions', default=15)
+parser.add_argument(
+    '--width', type=int, help='Width to be considered by convolutions', default=8)
 
 args = parser.parse_args()
 
 # Network params
-input_channels = 8
-height = 15
-width = 8
+input_channels = args.channels
+height = args.height
+width = args.width
 input_dim = input_channels * height * width
 hidden_dim = args.hidden_units
 output_dim = 1

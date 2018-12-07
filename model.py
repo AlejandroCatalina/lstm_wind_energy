@@ -50,7 +50,9 @@ class CLSTM(nn.Module):
                  num_lstm_layers=1,
                  num_conv_layers=1,
                  dropout_conv=0.2,
-                 kernel_size=2,
+                 kernel_size=3,
+                 padding=1,
+                 pool_kernel_size=2,
                  input_channels=8,
                  height=15,
                  width=8):
@@ -63,7 +65,9 @@ class CLSTM(nn.Module):
         self.batch_size = batch_size
         self.num_lstm_layers = num_lstm_layers
         self.num_conv_layers = num_conv_layers
+        self.padding = padding
         self.kernel_size = kernel_size
+        self.pool_kernel_size = pool_kernel_size
 
         total_layers = self.num_lstm_layers + self.num_conv_layers
         if isinstance(self.hidden_dim, list):
@@ -84,16 +88,21 @@ class CLSTM(nn.Module):
             # define the conv layers
             # output is (num_train, hidden_dim, out_1, out_2)
             self.convs.append(
-                nn.Conv2d(input_channels, output_channels, self.kernel_size)
-                .cuda())
+                nn.Conv2d(
+                    input_channels,
+                    output_channels,
+                    self.kernel_size,
+                    padding=self.padding).cuda())
             # input channels for text conv layers is the output channels
             # of the previous one
             input_channels = output_channels
 
             out_1 = int(
-                np.floor((out_11 - 1 * (self.kernel_size - 1) - 1) / 1 + 1))
+                np.floor((out_11 + 2 * self.padding - 1 *
+                          (self.kernel_size - 1) - 1) / 1 + 1))
             out_2 = int(
-                np.floor((out_22 - 1 * (self.kernel_size - 1) - 1) / 1 + 1))
+                np.floor((out_22 + 2 * self.padding - 1 *
+                          (self.kernel_size - 1) - 1) / 1 + 1))
             out_11 = int(
                 np.floor((out_1 - 1 *
                           (self.kernel_size - 1) - 1) / self.kernel_size + 1))
@@ -103,7 +112,7 @@ class CLSTM(nn.Module):
 
         self.relu = nn.ReLU()
 
-        self.max_pool = nn.MaxPool2d(kernel_size=kernel_size)
+        self.max_pool = nn.MaxPool2d(kernel_size=pool_kernel_size)
         # output is (num_train, hidden_dim, out_11, out_22)
 
         self.dropout = nn.Dropout(p=dropout_conv)
@@ -122,9 +131,9 @@ class CLSTM(nn.Module):
 
     def init_hidden(self):
         return (torch.zeros(self.num_lstm_layers, self.batch_size,
-                            self.lstm_hidden_dim),
-                torch.zeros(self.num_lstm_layers, self.batch_size,
-                            self.lstm_hidden_dim))
+                            self.lstm_hidden_dim), torch.zeros(
+                                self.num_lstm_layers, self.batch_size,
+                                self.lstm_hidden_dim))
 
     def forward(self, input):
         input_view = input.view(self.batch_size, self.height, self.width,

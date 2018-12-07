@@ -4,14 +4,24 @@ import torch.utils.data.dataset as data
 import os
 import gzip
 
+
 class Sotavento(data.Dataset):
-    training_file = 'stv_3h_train.pt'
-    test_file = 'stv_3h_test.pt'
-    def __init__(self, root, train=True, transform=None, target_transform=None, download=False):
+    train_file = 'stv_h_train.pt'
+    validation_file = 'stv_h_val.pt'
+    test_file = 'stv_h_test.pt'
+
+    def __init__(self,
+                 root,
+                 train=True,
+                 validation=False,
+                 transform=None,
+                 target_transform=None,
+                 download=False):
         self.root = os.path.expanduser(root)
         self.transform = transform
         self.target_transform = target_transform
         self.train = train  # training set or test set
+        self.validation = validation  # validation set
 
         if download:
             self.download()
@@ -21,10 +31,14 @@ class Sotavento(data.Dataset):
                                ' You can use download=True to download it')
 
         if self.train:
-            data_file = self.training_file
+            data_file = self.train_file
         else:
-            data_file = self.test_file
-        self.data, self.targets = torch.load(os.path.join(self.processed_folder, data_file))
+            if self.validation:
+                data_file = self.validation_file
+            else:
+                data_file = self.test_file
+        self.data, self.targets = torch.load(
+            os.path.join(self.processed_folder, data_file))
 
         # set float32 type
         self.data = self.data.type(torch.Tensor)
@@ -63,7 +77,7 @@ class Sotavento(data.Dataset):
         return {_class: i for i, _class in enumerate(self.classes)}
 
     def _check_exists(self):
-        return os.path.exists(os.path.join(self.processed_folder, self.training_file)) and \
+        return os.path.exists(os.path.join(self.processed_folder, self.train_file)) and \
             os.path.exists(os.path.join(self.processed_folder, self.test_file))
 
     @staticmethod
@@ -85,7 +99,11 @@ class Sotavento(data.Dataset):
         fmt_str += '    Split: {}\n'.format(tmp)
         fmt_str += '    Root Location: {}\n'.format(self.root)
         tmp = '    Transforms (if any): '
-        fmt_str += '{0}{1}\n'.format(tmp, self.transform.__repr__().replace('\n', '\n' + ' ' * len(tmp)))
+        fmt_str += '{0}{1}\n'.format(tmp,
+                                     self.transform.__repr__().replace(
+                                         '\n', '\n' + ' ' * len(tmp)))
         tmp = '    Target Transforms (if any): '
-        fmt_str += '{0}{1}'.format(tmp, self.target_transform.__repr__().replace('\n', '\n' + ' ' * len(tmp)))
+        fmt_str += '{0}{1}'.format(tmp,
+                                   self.target_transform.__repr__().replace(
+                                       '\n', '\n' + ' ' * len(tmp)))
         return fmt_str

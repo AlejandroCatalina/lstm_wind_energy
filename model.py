@@ -70,6 +70,7 @@ class CLSTM(nn.Module):
             if len(self.hidden_dim) != total_layers:
                 pad = nn.ConstantPad1d((0, total_layers), self.hidden_dim[-1])
                 self.hidden_dim = pad(torch.IntTensor(self.hidden_dim))
+                self.hidden_dim = self.hidden_dim.numpy().tolist()
         else:
             self.hidden_dim = [self.hidden_dim] * total_layers
 

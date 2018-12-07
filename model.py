@@ -113,12 +113,13 @@ class CLSTM(nn.Module):
 
         self.relu = nn.ReLU()
 
-        self.max_pool = nn.MaxPool2d(kernel_size=pool_kernel_size)
+        # self.max_pool = nn.MaxPool2d(kernel_size=pool_kernel_size)
         # output is (num_train, hidden_dim, out_11, out_22)
 
         self.dropout = nn.Dropout(p=dropout_conv)
 
-        self.dim = output_channels * out_11 * out_22
+        self.dim = output_channels * out_1 * out_2
+        # self.dim = output_channels * out_11 * out_22
 
         # Define the LSTM layer
         # hidden_dim of the LSTM is shared among all LSTM layers
@@ -143,7 +144,8 @@ class CLSTM(nn.Module):
 
         # sequentially apply conv layers
         for conv in self.convs:
-            input_tr = self.dropout(self.relu(self.max_pool(conv(input_tr))))
+            # input_tr = self.dropout(self.relu(self.max_pool(conv(input_tr))))
+            input_tr = self.dropout(self.relu(conv(input_tr)))
         conv_out = input_tr
 
         # Forward pass through LSTM layer

@@ -170,7 +170,7 @@ class CLSTM(nn.Module):
 
         input_dense = conv_out
         for linear in self.dense:
-            input_dense = linear(input_dense.view(self.batch_size, -1))
+            input_dense = self.dropout(linear(input_dense.view(self.batch_size, -1)))
 
         # Forward pass through LSTM layer
         # shape input to LSTM must be (input_size, batch_size, dim)
@@ -291,6 +291,6 @@ class CNN(nn.Module):
 
         input_dense = conv_out
         for linear in self.dense:
-            input_dense = linear(input_dense.view(self.batch_size, -1))
+            input_dense = self.dropout(linear(input_dense.view(self.batch_size, -1)))
         y_pred = input_dense
         return y_pred.view(-1)

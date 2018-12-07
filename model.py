@@ -104,12 +104,13 @@ class CLSTM(nn.Module):
             out_2 = int(
                 np.floor((out_22 + 2 * self.padding - 1 *
                           (self.kernel_size - 1) - 1) / 1 + 1))
-            out_11 = int(
-                np.floor((out_1 - 1 *
-                          (self.pool_kernel_size - 1) - 1) / self.pool_kernel_size + 1))
-            out_22 = int(
-                np.floor((out_2 - 1 *
-                          (self.pool_kernel_size - 1) - 1) / self.pool_kernel_size + 1))
+            # out_11 = int(
+            #     np.floor((out_1 - 1 *
+            #               (self.pool_kernel_size - 1) - 1) / self.pool_kernel_size + 1))
+            # out_22 = int(
+            #     np.floor((out_2 - 1 *
+            #               (self.pool_kernel_size - 1) - 1) / self.pool_kernel_size + 1))
+            out_11, out_22 = out_1, out_2
 
         self.relu = nn.ReLU()
 

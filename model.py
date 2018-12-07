@@ -68,8 +68,8 @@ class CLSTM(nn.Module):
         total_layers = self.num_lstm_layers + self.num_conv_layers
         if isinstance(self.hidden_dim, list):
             if len(self.hidden_dim) != total_layers:
-                self.hidden_dim = np.pad(
-                    self.hidden_dim, pad_width=total_layers, mode='edge')
+                pad = nn.ConstantPad1d((0, total_layers), self.hidden_dim[-1])
+                self.hidden_dim = pad(self.hidden_dim)
         else:
             self.hidden_dim = [self.hidden_dim] * total_layers
 

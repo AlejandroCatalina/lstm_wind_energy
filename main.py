@@ -5,7 +5,7 @@ import os
 
 from torch.utils.data import DataLoader
 
-from model import LSTM, CLSTM
+from model import LSTM, CLSTM, CNN
 from data import Sotavento
 import argparse
 
@@ -13,6 +13,7 @@ device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 print('device: ', device)
 
 parser = argparse.ArgumentParser(description='Wind energy forecasting.')
+parser.add_argument('--model', type=str, help='Model to use', default='clstm')
 parser.add_argument(
     '--lr', type=float, help='Adam learning rate', default=1e-3)
 parser.add_argument(
@@ -23,21 +24,34 @@ parser.add_argument(
     '--dropout-conv',
     type=float,
     help='Dropout to use after conv layers',
-    default=0.2)
+    default=0.0)
+parser.add_argument(
+    '--dropout-lstm',
+    type=float,
+    help='Dropout to use after lstm layers',
+    default=0.0)
+parser.add_argument(
+    '--dense-layers', type=int, help='Number of Dense layers', default=0)
 parser.add_argument(
     '--lstm-layers', type=int, help='Number of LSTM layers', default=1)
 parser.add_argument(
     '--conv-layers', type=int, help='Number of Conv layers', default=1)
+parser.add_argument('--channels', type=int, help='Input channels', default=10)
 parser.add_argument(
-    '--channels', type=int, help='Input channels', default=10)
+    '--height',
+    type=int,
+    help='Height to be considered by convolutions',
+    default=15)
 parser.add_argument(
-    '--height', type=int, help='Height to be considered by convolutions', default=15)
-parser.add_argument(
-    '--width', type=int, help='Width to be considered by convolutions', default=8)
+    '--width',
+    type=int,
+    help='Width to be considered by convolutions',
+    default=8)
 
 args = parser.parse_args()
 
 # Network params
+model = args.model
 input_channels = args.channels
 height = args.height
 width = args.width
@@ -46,7 +60,9 @@ hidden_dim = args.hidden_units
 output_dim = 1
 num_lstm_layers = args.lstm_layers
 num_conv_layers = args.conv_layers
+num_dense_layers = args.dense_layers
 dropout_conv = args.dropout_conv
+dropout_lstm = args.dropout_lstm
 learning_rate = args.lr
 num_epochs = 10000
 batch_size = 100
@@ -61,17 +77,43 @@ stv_test = Sotavento(path, train=False)
 #####################
 # Build model
 #####################
-model = CLSTM(
-    input_dim,
-    hidden_dim,
-    batch_size=batch_size,
-    output_dim=output_dim,
-    num_conv_layers=num_conv_layers,
-    dropout_conv=dropout_conv,
-    num_lstm_layers=num_lstm_layers,
-    input_channels=input_channels,
-    height=height,
-    width=width)
+if args.model == 'clstm':
+    model = CLSTM(
+        input_dim,
+        hidden_dim,
+        batch_size=batch_size,
+        output_dim=output_dim,
+        num_conv_layers=num_conv_layers,
+        num_dense_layers=num_dense_layers,
+        dropout_conv=dropout_conv,
+        dropout_lstm=dropout_lstm,
+        num_lstm_layers=num_lstm_layers,
+        input_channels=input_channels,
+        height=height,
+        width=width)
+elif args.model == 'LSTM':
+    model = LSTM(
+        input_dim,
+        hidden_dim,
+        batch_size=batch_size,
+        output_dim=output_dim,
+        num_layers=num_lstm_layers,
+        dropout=dropout_lstm)
+elif args.model == 'CNN':
+    model = CNN(
+        input_dim,
+        hidden_dim,
+        batch_size=batch_size,
+        output_dim=output_dim,
+        num_conv_layers=num_conv_layers,
+        num_dense_layers=num_dense_layers,
+        dropout_conv=dropout_conv,
+        input_channels=input_channels,
+        height=height,
+        width=width)
+else:
+    print('Model must be "clstm", "lstm" or "cnn".')
+    os.exit()
 model.to(device)
 
 # model = LSTM(

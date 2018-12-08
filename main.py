@@ -125,7 +125,7 @@ model.to(device)
 # model.to(device)
 
 loss_fn = torch.nn.MSELoss(reduction='sum')
-mae_fn = torch.nn.L1Loss(reduction='elementwise_mean')
+mae_fn = torch.nn.L1Loss(reduction='mean')
 
 optimiser = torch.optim.Adam(
     model.parameters(), lr=learning_rate, weight_decay=args.l2)

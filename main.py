@@ -5,7 +5,7 @@ import os
 
 from torch.utils.data import DataLoader
 
-from model import LSTM, CLSTM, CNN
+from models.nn import LSTM, CLSTM, CNN
 from data import Sotavento
 import argparse
 
